@@ -4,14 +4,14 @@ This guide will explain how to deploy a MongoDB database server to serve the con
 
 Pre-requisites:
 
-- Understand how to deploy a web app on an nginx web server VM using Vagrant: [tech230-app-deployment](https://github.com/bradley-woods/tech230-app-deployment)
+- Understand how to deploy a web app on an Nginx web server VM using Vagrant: [tech230-app-deployment](https://github.com/bradley-woods/tech230-app-deployment)
 - Have your application and environment in a folder called 'app' and 'environment' respectively in the same directory as your 'Vagrantfile':
 
     <img src="images/app-env.png" alt="app-env-folder" width="200px">
 
 ## Updating the Vagrantfile and Shell Script
 
-1. Following on from the previous repository, which explained how to deploy our sample app, we need to first update the 'Vagrantfile' by adding a new `do` block to create another VM. We can then use one VM for serving the nginx web app and the other for the MongoDB. Also, please be aware, we are now using an updated version of Ubuntu (bionic64). See below the new 'Vagrantfile':
+1. Following on from the previous repository, which explained how to deploy our sample app, we need to first update the 'Vagrantfile' by adding a new `do` block to create another VM. We can then use one VM for serving the Nginx web app and the other for the MongoDB. Also, please be aware, we are now using an updated version of Ubuntu (bionic64). See below the new 'Vagrantfile':
 
     ```ruby
     # Configure 2 so that 2 virtual machines are created. Note, we need a new 'do' block. 'bionic64' is an Ubuntu 18.04 64-bit operating system.
@@ -95,7 +95,7 @@ Pre-requisites:
     $ vagrant ssh db
     ```
 
-2. Similar to when we set up nginx on the web server back in the introduction to Vagrant, we can use the following commands to fetch and install any packages for the VM:
+2. Similar to when we set up Nginx on the web server back in the introduction to Vagrant, we can use the following commands to fetch and install any packages for the VM:
 
     ```console
     $ sudo apt-get update -y
@@ -203,7 +203,7 @@ Since the web app we are running is dynamic it needs to communicate with the dat
 6. Now we can go into the 'app' directory using `cd app` and run the command we previously commented out, as below to install node package manager:
 
     ```console
-    $ sudo npm install
+    app$ sudo npm install
     ```
 
     If you are presented with the following error, you will need to ensure the database is cleared and seeded by using the below command:
@@ -211,13 +211,13 @@ Since the web app we are running is dynamic it needs to communicate with the dat
     ![seed](images/seed.png)
 
     ```console
-    $ node seeds/seed.js
+    app$ node seeds/seed.js
     ```
 
 7. Finally, we can run our app using the following command:
 
     ```console
-    $ node app.js
+    app$ node app.js
     ```
 
 8.  If we enter the address for our web server and try to access the posts page using '192.168.10.100:3000/posts', we should be presented with content served by the MongoDB database VM.

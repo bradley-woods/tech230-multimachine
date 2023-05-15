@@ -292,3 +292,85 @@ Since the web app we are running is dynamic it needs to communicate with the dat
 3. Proceed by running the `vagrant up` command. Wait until everything installs and both VMs are running (this may take some time). Once everything is finished, the final few lines in the terminal should state the MongoDB service is active and running, as below:
 
     ![mongodb-running](images/mongo-running.png)
+
+## Automating the Connection between VMs
+
+We will now look into automating the steps above for establishing a connection between the VMs by editing the configuration files automatically on `vagrant up`.
+
+### Database Server
+
+1. Firstly, we need to add to the shell script 'provision_db.sh`, so it can automatically edit the 'mongod.conf' configuration file to change the 'bindIp' address from local 127.0.0.1 to open 0.0.0.0, we can use the following sed command, then we just need to restart and reenable the MongoDB server. Our 'provision_db.sh' script should now look similar to the following:
+
+    ```bash
+    #!/bin/bash
+
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+
+    # Download key to trusted key set
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv D68FA50FEA312927
+
+    # The key is read and stored to MongoDB root repo
+    echo "deb https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+    # Ensure all packages are installed prior to installing MongoDB
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+
+    # Install MongoDB
+    sudo apt-get install -y mongodb-org=3.2.20 mongodb-org-server=3.2.20 mongodb-org-shell=3.2.20 mongodb-org-mongos=3.2.20 mongodb-org-tools=3.2.20
+
+    # Start and enable MongoDB
+    sudo systemctl start mongod
+    sudo systemctl enable mongod
+
+    # Check status is running of the MongoDB server
+    sudo systemctl status mongod
+
+    # Edit /etc/mongod.conf file to change bindIp to 0.0.0.0
+    sudo sed -i "s,\\(^[[:blank:]]*bindIp:\\) .*,\\1 0.0.0.0," /etc/mongod.conf
+
+    # Restart then enable MongoDB
+    sudo systemctl restart mongod
+    sudo systemctl enable mongod
+    ```
+
+2. That should bring up the MongoDB server and configure the network interface automatically meaning we do not have to log in to the Database VM.
+
+### Application Server
+
+1. Similar to the database server, we can add to our application shell script 'provision_app.sh', to automatically add the host IP environment variable command to `.bashrc` using the echo command with the -a flag to append to the `.bashrc` file instead of replacing it. The 'provision_app.sh' script should look similar to the following:
+
+    ```bash
+    #!/bin/bash
+
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+
+    # Install nginx web server
+    sudo apt-get install nginx -y
+
+    # Start nginx web server 
+    sudo systemctl start nginx
+
+    # Display nginx web server status to check it is running
+    sudo systemctl status nginx
+
+    # Install app dependencies
+    sudo apt-get install python-software-properties
+    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+    sudo apt-get install nodejs -y
+    sudo npm install pm2 -g
+
+    # Add database host IP info to .bashrc
+    echo -e "\nexport DB_HOST=mongodb://192.168.10.150:27017/posts" | sudo tee -a .bashrc
+    source .bashrc
+
+    # Install npm in app directory and run the app
+    cd app
+    npm install
+    node seeds/seed.js
+    node app.js
+    ```
+
+2. That should automatically configure the '.bashrc' file and reload it on the application VM meaning we do not have to log in to the application VM to manually change this.

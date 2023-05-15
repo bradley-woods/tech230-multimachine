@@ -22,3 +22,10 @@ sudo systemctl enable mongod
 
 # Check status is running of the MongoDB server
 sudo systemctl status mongod
+
+# Edit /etc/mongod.conf file to change bindIp to 0.0.0.0
+sudo sed -i "s,\\(^[[:blank:]]*bindIp:\\) .*,\\1 0.0.0.0," /etc/mongod.conf
+
+# Restart then enable MongoDB
+sudo systemctl restart mongod
+sudo systemctl enable mongod
